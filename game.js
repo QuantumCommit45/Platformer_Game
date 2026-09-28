@@ -18,7 +18,6 @@ console.log(seed);
 var offline = !window.navigator.onLine;
 if (offline) console.log("Running in offline mode");
 const generate = mulberry32(seed);
-let wasFallingFast = false;
 let damageFlash = 0;
 let damageFlashes = 0;
 
@@ -28,7 +27,7 @@ const player = {
     y: 4000,
     width: 50,
     height: 100,
-    speed: 15,
+    speed: 50*5.612,
     ySpeed: 0,
     health: 20,
     hunger: 20,
@@ -47,7 +46,13 @@ const eyeOfCthulhu = {
     maxhealth:500
 };
 
-var frame = 0;
+var waterClock = 0;
+var lavaClock = 0;
+var healClock = 0;
+var burnClock = 0;
+var eyeClock = 0;
+var lastTime = Date.now();
+var deltaTime = 0;
 
 // Keyboard input
 const keys = {};
@@ -61,6 +66,8 @@ const seaFloor = 50;
 const lavaLevel = 20;
 
 const fallSafety = 3;
+const terminalVelocity = -5000
+const waterSpeed = -250;
 
 
 const steve = new Image();
@@ -331,20 +338,24 @@ function checkBox(x1,y1,dx,dy) {
 }
 
 function flow(){
-    if (frame%15 !== 0) return;
+    waterClock += deltaTime;
+    lavaClock += deltaTime;
+    if (waterClock < .25) return;
+    waterClock -= .25;
     for (let i = 0; i < mapSize; i++) {
         for (let j = mapSize/2; j < mapSize; j++) {
             try {
                 if (blocks[i][j] === 201 || blocks[i][j] === 200) {
                     flood(i,j-1,false);
                 }
-                if (frame%90 === 0 && blocks[i][j] === 203) {
+                if (lavaClock > 1.5 && blocks[i][j] === 203) {
                     lavaFlood(i,j-1,false);
                 }
             }
             catch (e) {}
         }
     }
+    if (lavaClock > 1.5) lavaClock -= 1.5 
     for (let i = 0; i < mapSize; i++) {
         for (let j = mapSize/2; j < mapSize; j++) {
             try {
@@ -388,7 +399,7 @@ function lavaFlood(x,y,end){
 }
 
 function drop(){
-    if (frame%15 !== 1) return;
+    if (waterClock < .25) return;
     for (let i = 0; i < mapSize; i++) {
         for (let j = mapSize; j > mapSize/2; j--) {
             try {
@@ -421,7 +432,7 @@ function clickPos(placed) {
 
     if (placed !== 0 && blocks[x][y] !== 0 && !(blocks[x][y] >= 100 && blocks[x][y] < 300)) return;
     if (placed === 0) {
-        if (x===breakingX && y===breakingY) {breakingTime-=breakSpeed(blocks[x][y]);}
+        if (x===breakingX && y===breakingY) {breakingTime-=breakSpeed(blocks[x][y])*deltaTime;}
         else {breakingTime = 1.0; breakingX=x; breakingY=y;}
         if (breakingTime > 0) return;
     }
@@ -439,15 +450,15 @@ function clickPos(placed) {
 
 function breakSpeed(block) {
     if (block === 201 || block === 203) return 0;
-    if (instaMine) return 1;
+    if (instaMine) return 100;
     if (block === 900) return 0;
-    if (block >= 400) return .03; //break speed for ores.
-    if (block >= 100 || block === 10 ) return 0.9;
-    if (block === 8 || block === 3 || block === 4 || block === 5 || block === 6) return .03;
+    if (block >= 400) return 1.25; //break speed for ores.
+    if (block >= 100 || block === 10 ) return 30;
+    if (block === 8 || block === 3 || block === 4 || block === 5 || block === 6) return 2.5;
     
-    if (block === 7) return .0005;
-    if (block === 9) return .9;
-    return .1;
+    if (block === 7) return 1/42;
+    if (block === 9) return 30;
+    return 6;
 }
 
 function isGrounded() {
@@ -484,6 +495,7 @@ function outOfBounds() {
 }
 
 function isSolid(block_id){
+    if (block_id === 6 || block_id === 10) return false
     if (block_id !== 0 && block_id <100 || block_id === 900 || block_id >= 400){
         return true
     }
@@ -491,29 +503,14 @@ function isSolid(block_id){
 }
 
 function verticalCollision(){
-    if (player.ySpeed < -25) {
-    wasFallingFast = true;
-}
-    let oldY = player.y;
-    player.y += player.ySpeed;
-    let y = worldToBlockY(player.y - 1);
-    let blockTop= (y - mapSize / 2) * blockSize+ blockSize
-    let x = worldToBlockX(player.x + player.width / 2);
-
-    if (
-        x >= 0 && x < mapSize &&
-        y >= 0 && y < mapSize &&
-        (blocks[x][y] === 200 ||
-         blocks[x][y] === 201 ||
-         blocks[x][y] === 203)
-    ) {
-        wasFallingFast = false;
+    let dist = player.ySpeed*deltaTime;
+    while (dist < -25) {
+        dist += 25;
+        player.y -= 25;
+        if (isGrounded()) snapToPlatform();
     }
-    /*if (player.ySpeed < 0&&oldY>blockTop&&player.y<=blockTop&&isSolid(blocks[x][y])) {player.ySpeed = 0; player.y=blockTop;if (wasFallingFast&&(blocks[x][y]<=200||blocks[x][y]>=300)&&blocks[x][y]!=0) {
-        player.health -= 5;
-        showDamageEffect();
-    } wasFallingFast = false;} */
-    
+    player.y += dist;
+
 }
 
 function horizontalCollision(moveDir) {
@@ -556,25 +553,26 @@ function mapBounds(){
 }
 
 function gravity(){
-    if (frame%1 === 0){player.ySpeed -= 1;}
-    if (player.ySpeed < -5) {
+    player.ySpeed -= 1600*deltaTime;
+    if (player.ySpeed < waterSpeed) {
         let bottom = player.y;
         let x = worldToBlockX(player.x + player.width / 2);
         let y = worldToBlockY(bottom - 1);
-        if (blocks[x][y]===201 || blocks[x][y]===200 || blocks[x][y]===203) player.ySpeed = -5;
+        if (blocks[x][y]===201 || blocks[x][y]===200 || blocks[x][y]===203) player.ySpeed = waterSpeed;
     }
-    if (player.ySpeed < -30) {
-        player.ySpeed = -30;
+    if (player.ySpeed < terminalVelocity) {
+        player.ySpeed = terminalVelocity;
     }
 }
 
 function movementKeys(){
     let grounded = isGrounded();
+    if (grounded && player.ySpeed < waterSpeed) player.ySpeed = waterSpeed;
     if (grounded) snapToPlatform();
-    if (grounded && keys["w"]) player.ySpeed = 15;
+    if (grounded && keys["w"]) player.ySpeed = 650;
     let moveDir = 0;
-    if (keys["a"]) { player.x -= player.speed; moveDir = -1; ;steve.src = "steveLeft.png";}
-    if (keys["d"]) { player.x += player.speed; moveDir = 1; steve.src = "steveRight.png";}
+    if (keys["a"]) { player.x -= player.speed*deltaTime; moveDir = -1; ;steve.src = "steveLeft.png";}
+    if (keys["d"]) { player.x += player.speed*deltaTime; moveDir = 1; steve.src = "steveRight.png";}
     horizontalCollision(moveDir);
 }
 
@@ -630,10 +628,11 @@ function updateEyeOfCthulhu() {
         eyeOfCthulhu.x += (dx / distance) * eyeOfCthulhu.speed;
         eyeOfCthulhu.y += (dy / distance) * eyeOfCthulhu.speed;
     }
-
+    eyeClock += deltaTime;
     // Damage player when close
-    if (distance < eyeOfCthulhu.radius + 25) {
-        if (frame % 30 === 0) {
+    if (eyeClock > .5) {
+        eyeClock -= .5;
+        if (distance < eyeOfCthulhu.radius + 25) {
             player.health -= 2;
 
             damageFlashes = 1;
@@ -715,8 +714,24 @@ function checkHealth() {
     player.hunger = Math.min(player.hunger,20);
     let x = worldToBlockX(player.x + player.width / 2);
     let y = worldToBlockY(player.y);
-    if (frame%(4*60) === 0 && player.hunger >= 18 && player.health<20) {player.hunger-=1; player.health+=1;}
-    try {if (frame%30 === 0 && blocks[x][y] === 203) {player.health-=4;showDamageEffect();}} catch (e) {}
+    healClock += deltaTime;
+    burnClock += deltaTime;
+    if (healClock > 4) {
+        healClock -= 4;
+        if (player.hunger >= 18 && player.health<20) {
+            player.hunger-=1; player.health+=1;
+        }
+    }
+    try {
+        if (burnClock > 0.5) {
+            burnClock -= 0.5;
+            if (blocks[x][y] === 203) {
+                player.health-=4;
+                showDamageEffect();
+            }
+        }
+    } 
+    catch (e) {}
     if(isGrounded()) {
         if (player.lastY-player.y > blockSize*fallSafety) {
             showDamageEffect();
@@ -916,9 +931,11 @@ function drawDamageFlash() {
 
 // Game loop
 function gameLoop() {
+    deltaTime = (Date.now()-lastTime)/1000;
+    lastTime = Date.now();
     update();
     draw();
-    frame+=1;
+
 
     requestAnimationFrame(gameLoop);
 }
