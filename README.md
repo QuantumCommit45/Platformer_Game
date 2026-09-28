@@ -2,7 +2,7 @@
 
 A browser-based 2D platformer with procedurally generated terrain, built with vanilla JavaScript, HTML5 Canvas, and CSS — no frameworks, no external dependencies.
 
-**[Play it live](https://quantumcommit45.github.io/platformer_game/)**
+**[Play it live](https://quantumcommit45.github.io/Platformer_Game/)**
 
 ## Overview
 
