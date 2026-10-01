@@ -16,6 +16,8 @@ var noDeath = false;
 if (params.has("nodeath")) noDeath = (params.get("nodeath")==="true");
 var superSpeed = false;
 if (params.has("superspeed")) superSpeed = (params.get("superspeed")==="true");
+var seeTemp = false;
+if (params.has("seetemp")) seeTemp = (params.get("seetemp")==="true");
 console.log(seed);
 var offline = !window.navigator.onLine;
 if (offline) console.log("Running in offline mode");
@@ -869,7 +871,7 @@ function draw() {
         for (let i = Math.max(0,x-15); i < Math.min(mapSize,x+15); i++) {
             for (let j = mapSize; j > Math.max(mapSize/2+seaFloor-1,y-20); j--) {
                 if (biome(i,j-1) !== 1) break;
-                if (isSolid(blocks[i][j-1]) || blocks[i][j-1] === 6 || blocks[i][j-1] === 10) {
+                if (isSolid(blocks[i][j-1]) || blocks[i][j-1] === 6 || blocks[i][j-1] === 10 || seeTemp) {
                     let worldX = (i - mapSize / 2) * blockSize;
                     let worldY = (j - mapSize / 2) * blockSize;
                     let screenX = worldX + offset - player.x;
@@ -881,7 +883,7 @@ function draw() {
                         blockSize,
                         blockSize
                     )
-                    break;
+                    if (!seeTemp) break;
                 }
             }
         }
