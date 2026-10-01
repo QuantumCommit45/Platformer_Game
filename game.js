@@ -154,7 +154,7 @@ const noises = Array(strengths.length);
 for (let i = 0; i < strengths.length; i++) {
     noises[i] = makeSomeNoise(strengths[i]);
 }
-
+const temps = makeSomeNoise(250);
 let caveX = 0;
 let caveY = mapSize / 2 + 30;
 for (let i = 0; i < mapSize; i++) {
@@ -414,7 +414,7 @@ function drop(){
 }
 
 function biome(x,y) {
-    if (x < mapSize/2) return 1;
+    if (computeNoise(temps,250,x) < (y-mapSize/2)/150-.5) return 1;
     return 0;
 }
 
@@ -560,7 +560,7 @@ function mapBounds(){
 
 function gravity(){
     player.ySpeed -= 1600*deltaTime;
-    if (player.ySpeed < waterSpeed) {
+    if (player.ySpeed < waterSpeed && !flight) {
         let bottom = player.y;
         let x = worldToBlockX(player.x + player.width / 2);
         let y = worldToBlockY(bottom - 1);
@@ -573,7 +573,7 @@ function gravity(){
 
 function movementKeys(){
     let grounded = isGrounded();
-    if (grounded && player.ySpeed < waterSpeed) player.ySpeed = waterSpeed;
+    if ((grounded && player.ySpeed < waterSpeed) && !flight) player.ySpeed = waterSpeed;
     if (grounded) snapToPlatform();
     if (grounded && keys["w"]) player.ySpeed = 650;
     let moveDir = 0;
@@ -864,7 +864,7 @@ function draw() {
     if (!offline) {
         for (let i = Math.max(0,x-15); i < Math.min(mapSize,x+15); i++) {
             for (let j = mapSize; j > Math.max(mapSize/2+seaFloor-1,y-20); j--) {
-                if (biome(i,j) !== 1) break;
+                if (biome(i,j-1) !== 1) break;
                 if (isSolid(blocks[i][j-1]) || blocks[i][j-1] === 6 || blocks[i][j-1] === 10) {
                     let worldX = (i - mapSize / 2) * blockSize;
                     let worldY = (j - mapSize / 2) * blockSize;
