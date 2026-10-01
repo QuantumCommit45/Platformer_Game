@@ -93,10 +93,10 @@ if (!offline) {
 const blockTypes = [
     ["dirt","grass-block","cobblestone","oak-planks","birch-planks",
         "oak-log","obsidian","stone","glass","oak-leaves",
-        "gravel","pumpkin","melon"],
+        "gravel","pumpkin","melon","snowy-grass-block"],
     ["short-grass","allium","azure-bluet","blue-orchid","cornflower",
         "dandelion","lily-of-the-valley","oxeye-daisy","poppy","orange-tulip",
-        "pink-tulip","red-tulip","white-tulip"],
+        "pink-tulip","red-tulip","white-tulip","snow"],
     ["seagrass","flowing-water","stationary-water","flowing-lava","lava"],
     ["bedrock"],
     ["coal-ore", "iron-ore", "copper-ore", "gold-ore", "redstone-ore", 
@@ -294,7 +294,7 @@ function foliage(x,y) {
     let num = generate()
     if (num < .2) makeTree(x,y);
     else if (num < .4) blocks[x][y] = 100;
-    else if (num < .5) blocks[x][y] = 100+Math.floor(generate()*15);
+    else if (num < .5 && biome(x,y) === 0) blocks[x][y] = 100+Math.floor(generate()*15);
     if (blocks[x][y] === 114 || blocks[x][y] === 113) blocks[x][y]-= 101
 }
 
@@ -412,6 +412,12 @@ function drop(){
         }
     }
 }
+
+function biome(x,y) {
+    if (x < mapSize/2) return 1;
+    return 0;
+}
+
 // Convert world X to block X
 function worldToBlockX(x) {return Math.floor(x / blockSize) + mapSize / 2;}
 
@@ -792,6 +798,7 @@ function draw() {
         for (let j = Math.max(mapSize/2,y-20); j < Math.min(mapSize,y+20); j++) {
             if (blocks[i][j] === 0) continue;
             if (!offline) texture = textures[blocks[i][j]];
+            if (blocks[i][j] === 2 && biome(i,j) === 1) texture = textures[14];
             if (blocks[i][j] === 2 && (blocks[i][j+1] !== 0 && blocks[i][j+1] < 100)) texture = textures[1];
 
             // Convert block coordinates into world coordinates
@@ -849,6 +856,28 @@ function draw() {
                         blockSize,
                         blockSize
                     )
+                }
+            }
+        }
+    }
+
+    if (!offline) {
+        for (let i = Math.max(0,x-15); i < Math.min(mapSize,x+15); i++) {
+            for (let j = mapSize; j > Math.max(mapSize/2+seaFloor-1,y-20); j--) {
+                if (biome(i,j) !== 1) break;
+                if (isSolid(blocks[i][j-1]) || blocks[i][j-1] === 6 || blocks[i][j-1] === 10) {
+                    let worldX = (i - mapSize / 2) * blockSize;
+                    let worldY = (j - mapSize / 2) * blockSize;
+                    let screenX = worldX + offset - player.x;
+                    let screenY = yOffset - worldY + player.y - blockSize;
+                    ctx.drawImage(
+                        textures[113],
+                        screenX,
+                        screenY,
+                        blockSize,
+                        blockSize
+                    )
+                    break;
                 }
             }
         }
