@@ -14,6 +14,8 @@ var noClip = false;
 if (params.has("noclip")) noClip = (params.get("noclip")==="true");
 var noDeath = false;
 if (params.has("nodeath")) noDeath = (params.get("nodeath")==="true");
+var superSpeed = false;
+if (params.has("superspeed")) superSpeed = (params.get("superspeed")==="true");
 console.log(seed);
 var offline = !window.navigator.onLine;
 if (offline) console.log("Running in offline mode");
@@ -577,8 +579,10 @@ function movementKeys(){
     if (grounded) snapToPlatform();
     if (grounded && keys["w"]) player.ySpeed = 650;
     let moveDir = 0;
-    if (keys["a"]) { player.x -= player.speed*deltaTime; moveDir = -1; ;steve.src = "steveLeft.png";}
-    if (keys["d"]) { player.x += player.speed*deltaTime; moveDir = 1; steve.src = "steveRight.png";}
+    let speed = player.speed*deltaTime
+    if (superSpeed) speed*=10
+    if (keys["a"]) { player.x -= speed; moveDir = -1; ;steve.src = "steveLeft.png";}
+    if (keys["d"]) { player.x += speed; moveDir = 1; steve.src = "steveRight.png";}
     horizontalCollision(moveDir);
 }
 
