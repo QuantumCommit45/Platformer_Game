@@ -804,9 +804,10 @@ function draw() {
     // Blocks
     let x = worldToBlockX(player.x + player.width / 2);
     let y = worldToBlockY(player.y);
+    let renderBounds = 20;
 
-    for (let i = Math.max(0,x-20); i < Math.min(mapSize,x+20); i++) {
-        for (let j = Math.max(mapSize/2,y-20); j < Math.min(mapSize,y+20); j++) {
+    for (let i = Math.max(0,x-renderBounds); i < Math.min(mapSize,x+renderBounds); i++) {
+        for (let j = Math.max(mapSize/2,y-renderBounds); j < Math.min(mapSize,y+renderBounds); j++) {
             if (blocks[i][j] === 0) continue;
             if (!offline) texture = textures[blocks[i][j]];
             if (blocks[i][j] === 2 && biome(i,j) === 1) texture = textures[14];
@@ -873,8 +874,8 @@ function draw() {
     }
 
     if (!offline) {
-        for (let i = Math.max(0,x-20); i < Math.min(mapSize,x+20); i++) {
-            for (let j = mapSize; j > Math.max(mapSize/2+seaFloor-1,y-20); j--) {
+        for (let i = Math.max(0,x-renderBounds); i < Math.min(mapSize,x+renderBounds); i++) {
+            for (let j = mapSize; j > Math.max(mapSize/2+seaFloor-1,y-renderBounds); j--) {
                 if (biome(i,j-1) !== 1) break;
                 if (isSolid(blocks[i][j-1]) || blocks[i][j-1] === 6 || blocks[i][j-1] === 10 || seeTemp) {
                     let worldX = (i - mapSize / 2) * blockSize;
