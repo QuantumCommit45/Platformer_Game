@@ -73,6 +73,8 @@ const fallSafety = 3;
 const terminalVelocity = -5000
 const waterSpeed = -250;
 
+const renderBounds = 20;
+
 
 const steve = new Image();
 steve.src = "steveLeft.png";
@@ -804,7 +806,6 @@ function draw() {
     // Blocks
     let x = worldToBlockX(player.x + player.width / 2);
     let y = worldToBlockY(player.y);
-    let renderBounds = 20;
 
     for (let i = Math.max(0,x-renderBounds); i < Math.min(mapSize,x+renderBounds); i++) {
         for (let j = Math.max(mapSize/2,y-renderBounds); j < Math.min(mapSize,y+renderBounds); j++) {
