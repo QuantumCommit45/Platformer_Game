@@ -257,7 +257,7 @@ function placeSeabed(x,y,upper,lower) {
     else {blocks[x][y] = upper;}
 }
 
-const offset = 400 - player.width / 2;
+var offset = 400 - player.width / 2;
 
 var mouseX = 0;
 var mouseY = 0;
@@ -279,7 +279,7 @@ document.addEventListener("mousemove", (event) => {mouseX = event.clientX; mouse
 
 document.addEventListener(
     "contextmenu", (event) => {
-        if (event.clientX < 810 && event.clientY < 610) {
+        if (event.clientX < canvas.width-10) {
             event.preventDefault();
         }
     }
@@ -344,6 +344,11 @@ function checkBox(x1,y1,dx,dy) {
 function flow(){
     waterClock += deltaTime;
     lavaClock += deltaTime;
+    if (lavaClock > 1.5) {       
+        canvas.height = window.innerHeight-20;
+        canvas.width = document.body.clientWidth;
+        offset = canvas.width/2 - player.width / 2 ;
+    }
     if (waterClock < .25) return;
     waterClock -= .25;
     for (let i = 0; i < mapSize; i++) {
@@ -772,9 +777,9 @@ function showDamageEffect() {
 // Draw everything
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (!offline) ctx.drawImage(sky,0,-600,800,1200);
+    if (!offline) ctx.drawImage(sky,0,-canvas.height,canvas.width,2*canvas.height);
     // Camera
-    yOffset = ((300 +600-player.y) +Math.sqrt((300 + player.y-600) ** 2+500)) / 2;
+    yOffset = ((canvas.height/2 +canvas.height-player.y) +Math.sqrt((canvas.height/2 + player.y-canvas.height) ** 2+100000)) / 2;
 
     // Player
     ctx.fillStyle = "cyan";
@@ -800,7 +805,7 @@ function draw() {
     let x = worldToBlockX(player.x + player.width / 2);
     let y = worldToBlockY(player.y);
 
-    for (let i = Math.max(0,x-15); i < Math.min(mapSize,x+15); i++) {
+    for (let i = Math.max(0,x-20); i < Math.min(mapSize,x+20); i++) {
         for (let j = Math.max(mapSize/2,y-20); j < Math.min(mapSize,y+20); j++) {
             if (blocks[i][j] === 0) continue;
             if (!offline) texture = textures[blocks[i][j]];
@@ -868,7 +873,7 @@ function draw() {
     }
 
     if (!offline) {
-        for (let i = Math.max(0,x-15); i < Math.min(mapSize,x+15); i++) {
+        for (let i = Math.max(0,x-20); i < Math.min(mapSize,x+20); i++) {
             for (let j = mapSize; j > Math.max(mapSize/2+seaFloor-1,y-20); j--) {
                 if (biome(i,j-1) !== 1) break;
                 if (isSolid(blocks[i][j-1]) || blocks[i][j-1] === 6 || blocks[i][j-1] === 10 || seeTemp) {
@@ -919,8 +924,8 @@ function drawHealth() {
         if (player.health/2-.5 > i) texture = heart;
         ctx.drawImage(
             texture,
-            155+22*i,
-            500,
+            canvas.width/2-240+22*i,
+            canvas.height-100,
             25,
             25
         )
@@ -931,8 +936,8 @@ function drawHealth() {
         if (player.hunger/2-.5 > i) texture = hunger;
         ctx.drawImage(
             texture,
-            616-22*i,
-            500,
+            canvas.width/2+214-22*i,
+            canvas.height-100,
             25,
             25
         )

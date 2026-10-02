@@ -1,7 +1,7 @@
 .game-container {
     position: relative;
-    width: 800px;
-    height: 600px;
+    width: 100vw-5;
+    height: 100vh-20;
 }
 
 .hotbar {
