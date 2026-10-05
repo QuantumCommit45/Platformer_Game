@@ -73,7 +73,7 @@ const fallSafety = 3;
 const terminalVelocity = -5000
 const waterSpeed = -250;
 
-const renderBounds = 20;
+var renderBounds = 32;
 
 
 const steve = new Image();
@@ -349,7 +349,6 @@ function flow(){
     if (lavaClock > 1.5) {       
         canvas.height = window.innerHeight-20;
         canvas.width = document.body.clientWidth;
-        offset = canvas.width/2 - player.width / 2 ;
     }
     if (waterClock < .25) return;
     waterClock -= .25;
@@ -782,7 +781,9 @@ function draw() {
     if (!offline) ctx.drawImage(sky,0,-canvas.height,canvas.width,2*canvas.height);
     // Camera
     yOffset = ((canvas.height/2 +canvas.height-player.y) +Math.sqrt((canvas.height/2 + player.y-canvas.height) ** 2+100000)) / 2;
-
+    offset = canvas.width/2 - player.width / 2;
+    offset += Math.max(0,player.x-blockSize*mapSize/2+canvas.width/2 + player.width / 2)
+    offset += Math.min(0,player.x+blockSize*mapSize/2-canvas.width/2 + player.width / 2)
     // Player
     ctx.fillStyle = "cyan";
     if (offline) {
